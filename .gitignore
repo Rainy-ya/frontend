@@ -1,0 +1,37 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+public/animations
+public/models/gifts.glb
+public/models/guide.glb
+public/models/gifts.glb
+public/models/modelAnimation.blend
+public/models/modelAnimation.blend1
+public/models/snowfall.glb
+public/models/stone_floor.glb
+public/models/xmas_tree.glb
+
+public/sounds/greeting_default.mp3
+public/sounds/test_sound.mp3
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
