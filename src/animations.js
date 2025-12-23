@@ -25,7 +25,7 @@ export class AnimationController {
     }
 
 
-    updateHeadTracking(camera, smoothingFactor = 0.05) { // Reduced from 0.15
+    updateHeadTracking(camera, smoothingFactor = 0.15) {
 
         const headBone = this.modelLoader.bones.head;
 
@@ -34,28 +34,9 @@ export class AnimationController {
             return;
         }
 
-        const cameraPos = camera.position.clone();
-        
-        if (this.isFirstHeadTrackingFrame) {
-            this.previousCameraPos.copy(cameraPos);
-            this.smoothedCameraPos.copy(cameraPos);
-            this.isFirstHeadTrackingFrame = false;
-        }
-        
-        const cameraDelta = cameraPos.distanceTo(this.previousCameraPos);
-        
-        if (cameraDelta < this.cameraMovementThreshold) {
-            // Camera barely moved, use previous smoothed position
-            cameraPos.copy(this.smoothedCameraPos);
-        } else {
-            // Camera moved significantly, smooth the position
-            this.smoothedCameraPos.lerp(cameraPos, 0.3); // Smooth camera position
-            this.previousCameraPos.copy(cameraPos);
-        }
-        
-        // Calculate direction using smoothed camera position
         const headWorldPos = headBone.getWorldPosition(new THREE.Vector3());
-        const direction = new THREE.Vector3().subVectors(this.smoothedCameraPos, headWorldPos).normalize();
+        const cameraPos = camera.position.clone();
+        const direction = new THREE.Vector3().subVectors(cameraPos, headWorldPos).normalize();
 
         const horizontalDist = Math.sqrt(direction.x * direction.x + direction.z * direction.z);
         let yaw = Math.atan2(direction.x, direction.z);
@@ -68,14 +49,9 @@ export class AnimationController {
 
         yaw = THREE.MathUtils.clamp(yaw, -maxYaw, maxYaw);
         pitch = THREE.MathUtils.clamp(pitch, minPitch, maxPitch);
-        
-        // Store target rotations
-        this.targetHeadRotation.y = yaw;
-        this.targetHeadRotation.z = pitch;
 
-        // Apply with reduced smoothing for more stable movement
-        headBone.rotation.y = THREE.MathUtils.lerp(headBone.rotation.y, this.targetHeadRotation.y, smoothingFactor);
-        headBone.rotation.z = THREE.MathUtils.lerp(headBone.rotation.z, this.targetHeadRotation.z, smoothingFactor);
+        headBone.rotation.y = THREE.MathUtils.lerp(headBone.rotation.y, yaw, smoothingFactor);
+        headBone.rotation.z = THREE.MathUtils.lerp(headBone.rotation.z, pitch, smoothingFactor);
         headBone.rotation.x = 0;
     }
 

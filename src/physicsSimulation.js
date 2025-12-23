@@ -129,7 +129,9 @@ export class HairPhysicsSystem {
             const modelScale = this.model.scale.x; 
             const scaledRadius = radius * modelScale;
             
-            const collider = new SphereCollider(bone, scaledRadius, offset);
+            const scaledOffset = offset.clone().multiplyScalar(modelScale);
+            
+            const collider = new SphereCollider(bone, scaledRadius, scaledOffset);
             this.colliders.push(collider);
             return collider;
 
@@ -298,7 +300,7 @@ export class HairPhysicsSystem {
         const helpers = [];
         
         for (const collider of this.colliders) {
-            // CRITICAL: Account for model scale when creating sphere
+
             const geometry = new THREE.SphereGeometry(collider.radius, 16, 16);
             const material = new THREE.MeshBasicMaterial({
                 color: 0xff0000,
@@ -316,10 +318,6 @@ export class HairPhysicsSystem {
         const updateHelpers = () => {
             helpers.forEach(({ mesh, collider }) => {
                 mesh.position.copy(collider.position);
-                
-                if (this.model) {
-                    mesh.scale.copy(this.model.scale);
-                }
             });
         };
         

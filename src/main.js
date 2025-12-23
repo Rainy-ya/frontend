@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { ARButton } from 'three/examples/jsm/Addons.js';
 import { onSelect, hitTest, createIndicator } from './hitTest.js';
 import { HairPhysicsSystem } from './physicsSimulation.js';
-//import { createGifts, createSnowfall, createSnowyPlatform, createXmasTree } from './scene.js';
+import { createSnowfall } from './scene.js';
 import { ModelLoader } from './modelLoader.js';
 import { AnimationController } from './animations.js';
 import { AudioManager } from './audioManager.js';
@@ -31,7 +31,7 @@ let movementsSystem;
 
 // Scene objects
 let indicator;
-let standingGround, xmasTreeModel, gifts, snowfallModel;
+let snowfallModel;
 
 let clock = new THREE.Clock();
 
@@ -70,7 +70,7 @@ async function init() {
         session = null;
         imageTracker.reset();
         console.log('AR Session ended.');
-        //window.location.reload();
+        window.location.reload();
     });
 
     controller = renderer.xr.getController(0);
@@ -116,16 +116,13 @@ async function init() {
     animationSystem.setIntensity(0.4);
 
     // Setup hair physics
-    //hairPhysics = new HairPhysicsSystem();
-    //hairPhysics.addHairChainsFromModel(modelLoader.guideCharModel);
-    //hairPhysics.addCollider('head_neck_upper_054', 0.075, new THREE.Vector3(0, 0.01, 0.005));
-    //hairPhysics.addCollider('head_neck_lower_053', 0.025, new THREE.Vector3(0, 0, 0.005));
-    //hairPhysics.addCollider('arm_left_shoulder_1_099', 0.055, new THREE.Vector3(0.015, -0.006, 0));
-    //hairPhysics.addCollider('arm_right_shoulder_1_0122', 0.055, new THREE.Vector3(-0.015, -0.006, 0));
-    //hairPhysics.addCollider('spine_upper_052', 0.125, new THREE.Vector3(0, -0.005, 0));
-
-    //const { helpers, updateHelpers } = hairPhysics.visualizeColliders(scene);
-    //window.updateHelpers = updateHelpers;
+    hairPhysics = new HairPhysicsSystem();
+    hairPhysics.addHairChainsFromModel(modelLoader.guideCharModel);
+    hairPhysics.addCollider('head_neck_upper_054', 0.015, new THREE.Vector3(0, 0.002, 0.001));
+    hairPhysics.addCollider('head_neck_lower_053', 0.005, new THREE.Vector3(0, 0, 0.001));
+    hairPhysics.addCollider('arm_left_shoulder_1_099', 0.011, new THREE.Vector3(0.0075, -0.0012, 0));
+    hairPhysics.addCollider('arm_right_shoulder_1_0122', 0.011, new THREE.Vector3(-0.0075, -0.0012, 0));
+    hairPhysics.addCollider('spine_upper_052', 0.025, new THREE.Vector3(0, -0.0035, 0));
 
     expressionSystem = new FacialExpressionSystem(modelLoader.guideCharModel);
     createPresetExpressions(expressionSystem);
@@ -139,31 +136,18 @@ async function init() {
     speechManager = new SpeechRecognitionManager(audioManager, expressionSystem, movementsSystem);
 
     // Scene objects
-    /*standingGround = await createSnowyPlatform();
-    standingGround.visible = false;
-    scene.add(standingGround);
-
-    const { scene: xmasTree, treeMixer } = await createXmasTree();
-    xmasTreeModel = xmasTree;
-    xmasTreeModel.visible = false;
-    scene.add(xmasTreeModel);
-    mixers.push(treeMixer);
-
     const { scene: snowfall, snowMixer } = await createSnowfall();
     snowfallModel = snowfall;
     snowfallModel.visible = false;
     scene.add(snowfallModel);
     mixers.push(snowMixer);
 
-    gifts = await createGifts();
-    gifts.visible = false;
-    scene.add(gifts);*/
-
     window.addEventListener('resize', onWindowResize, false);
 }
 
 function render(timestamp, frame) {
     if (frame) {
+        
         const results = frame.getImageTrackingResults();
         isImageTracked = false;
 
@@ -207,23 +191,21 @@ function render(timestamp, frame) {
             if (session && modelLoader.guideCharModel) {
                 if (!modelLoader.guideCharModel.visible) {
                     hitTest(session, frame, indicator, renderer);
-                    onSelect(indicator, modelLoader.guideCharModel, camera, scene);
                 }
             }
         }
 
+        if (hitTestSuccess && modelLoader.guideCharModel) {
+            onSelect(indicator, modelLoader.guideCharModel);
+            hitTestSuccess = false;
+        }
+
         // Update scene objects and animations
-        if (modelLoader.guideCharModel && hitTestSuccess || isImageTracked) {
+        if (modelLoader.guideCharModel && (modelLoader.guideCharModel.visible || isImageTracked)) {
 
-            /*standingGround.position.setFromMatrixPosition(indicator.matrix);
-            xmasTreeModel.position.setFromMatrixPosition(indicator.matrix);
             snowfallModel.position.setFromMatrixPosition(indicator.matrix);
-            gifts.position.setFromMatrixPosition(indicator.matrix);
 
-            standingGround.visible = true;
-            xmasTreeModel.visible = true;
             snowfallModel.visible = true;
-            gifts.visible = true;*/
 
             // Update animations
             animationSystem.updateHeadTracking(camera, 0.15);
@@ -260,9 +242,6 @@ function animate() {
     // Update hair physics
     if (hairPhysics && modelLoader && modelLoader.bones.head && modelLoader.guideCharModel?.visible) {
         hairPhysics.update(delta, modelLoader.bones.head);
-
-        if(window.updateHelpers)
-            window.updateHelpers();
     }
 
     if (expressionSystem)

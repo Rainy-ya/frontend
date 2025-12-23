@@ -11,6 +11,7 @@ export function onSelect(indicator, model) {
         model.quaternion.setFromRotationMatrix(indicator.matrix);
         model.scale.set(0.2, 0.2, 0.2); 
         model.visible = true;
+        fadeInModel(model, 2000);
 
         indicator.visible = false;
         console.log('Model placed at hit-test location: ', model.position);
@@ -77,99 +78,23 @@ export function hitTest(session, frame, indicator, renderer) {
     }
 }
 
-/*function init() {
-
-    const container = document.createElement('div');
-    document.body.appendChild(container);
-
-    scene = new THREE.Scene();
-
-    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.xr.enabled = true;
-    container.appendChild(renderer.domElement);
-
-    const loader = new GLTFLoader();
-
-    // lighting
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
-    scene.add(hemiLight);
-
-    const directional = new THREE.DirectionalLight(0xffffff, 0.8);
-    directional.position.set(0, 5, 5);
-    scene.add(directional);
-
-    createIndicator();
-
-    loader.load('/models/guide.glb',  (gltf) => {
-
-        guideChar = gltf.scene;
-        guideChar.scale.set(0.1, 0.1, 0.1);
-
-        if (gltf.animations && gltf.animations.length > 0) {
-            console.warn("Disabling animations for bone test...");
-            gltf.animations = [];
-        }
-
-        guideChar.traverse((obj) => {
-            if (obj.isBone) {
-                
-                if(obj.name === "head_neck_lower_053") headLower = obj;
-                if(obj.name === "head_neck_upper_054") headUpper = obj;
+function fadeInModel(model, duration) {
+    const startTime = Date.now();
+    
+    function animate() {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        model.traverse((obj) => {
+            if (obj.isMesh && obj.material) {
+                obj.material.opacity = progress;
             }
         });
-
-        /*guideChar.traverse((obj) => {
-
-            if (obj.isSkinnedMesh) {
-                const s = obj.skeleton;
-                console.log("Total bones:", s.bones.length);
-
-                // Find the bone with most influence on head verts
-                for (let i = 0; i < s.boneInverses.length; i++) {
-                    console.log("Bone index:", i, "Name:", s.bones[i].name);
-                }
-            }
-        });
-
-        let allBones = [];
-
-        guideChar.traverse((obj) => {
-            if (obj.isBone) allBones.push(obj);
-        });
-
-        // Rotate each bone for 0.5 seconds to see which one affects the head
-        let testIndex = 0;
-
-        function testBones() {
-            if (testIndex >= allBones.length) return;
-
-            const b = allBones[testIndex];
-            console.log("Testing bone:", b.name);
-
-            const interval = setInterval(() => {
-                b.rotation.y += 0.05;
-            }, 16);
-
-            setTimeout(() => {
-                clearInterval(interval);
-                testIndex++;
-                testBones();
-            }, 500); // test next bone every 0.5s
+        
+        if (progress < 1) {
+            requestAnimationFrame(animate);
         }
-
-        //testBones();
-    });
-    // AR button
-    document.body.appendChild(ARButton.createButton(renderer, { 
-        requiredFeatures: ['hit-test'], 
-        optionalFeatures: ['local-floor']
-    }));
-
-    controller = renderer.xr.getController(0);
-    scene.add(controller);
-
-    renderer.xr.addEventListener('sessionstart', onSessionStart);
-}*/
+    }
+    
+    animate();
+}

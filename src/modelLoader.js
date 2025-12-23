@@ -54,6 +54,7 @@ export class ModelLoader {
                     }
                 });
 
+                this.guideCharModel.wireframe = true;
                 this.guideCharModel.matrixAutoUpdate = true;
                 this.guideCharModel.visible = false;
                 scene.add(this.guideCharModel);

@@ -37,13 +37,16 @@ async ask() {
                     return;
                 }
 
-                const response = await fetch('http://10.150.34.28:3000/ask', {
+                const response = await fetch('https://backend-6w7c.vercel.app/api/ask', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ question: transcript })
                 });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Request failed: ${response.status} ${errorText}`);
+                }
 
                 const data = await response.json();
                 console.log('Answer:', data.answer);

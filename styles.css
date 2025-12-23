@@ -11,12 +11,10 @@ body {
     position: relative;
 }
 
-/* AR Mode - transparent background */
 body.ar-mode {
     background: transparent;
 }
 
-/* Loading Overlay */
 .loading-overlay {
     display: flex;
     position: fixed;
@@ -58,7 +56,6 @@ body.ar-mode {
     font-weight: 500;
 }
 
-/* Welcome Screen - before AR starts */
 .welcome-screen {
     display: flex;
     align-items: center;
@@ -123,7 +120,6 @@ body.ar-mode {
     transform: translateY(0);
 }
 
-/* AR Interface - overlay on camera */
 .ar-interface {
     display: none;
     position: fixed;
@@ -139,7 +135,6 @@ body.ar-mode {
     display: block;
 }
 
-/* Chat Bubbles - positioned in corners */
 .chat-container {
     position: fixed;
     top: 20px;
@@ -211,7 +206,6 @@ body.ar-mode {
     font-weight: 500;
 }
 
-/* Microphone Button - bottom center */
 .mic-container {
     position: fixed;
     bottom: 40px;
@@ -285,7 +279,6 @@ body.ar-mode {
     backdrop-filter: blur(10px);
 }
 
-/* Control Buttons - top right */
 .control-buttons {
     position: fixed;
     top: 20px;
@@ -345,7 +338,6 @@ body.ar-mode {
     color: white;
 }
 
-/* Responsive */
 @media (max-width: 640px) {
     .chat-bubble {
         max-width: 42%;
@@ -370,4 +362,342 @@ body.ar-mode {
         width: 44px;
         height: 44px;
     }
+}
+
+.corner-buttons {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    gap: 12px;
+    z-index: 9999;
+}
+
+.corner-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.corner-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 1);
+}
+
+.corner-btn:active {
+    transform: translateY(0);
+}
+
+.corner-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2;
+}
+
+#warningBtn svg {
+    color: #f59e0b;
+}
+
+#tutorialBtn svg {
+    color: #3b82f6;
+}
+
+.slide-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 20px;
+}
+
+.slide-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.slide-modal {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transform: scale(0.9) translateY(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.slide-modal-overlay.active .slide-modal {
+    transform: scale(1) translateY(0);
+}
+
+.slide-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: white;
+}
+
+.slide-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.slide-modal-close svg {
+    width: 20px;
+    height: 20px;
+}
+
+.slide-content {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.slide-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: iconPulse 2s ease-in-out infinite;
+}
+
+.slide-icon svg {
+    width: 40px;
+    height: 40px;
+    color: white;
+}
+
+@keyframes iconPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    }
+}
+
+.slide-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.slide-text {
+    font-size: 16px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.slide-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.slide-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.slide-dot.active {
+    width: 24px;
+    border-radius: 4px;
+    background: white;
+}
+
+.slide-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.slide-btn {
+    flex: 1;
+    padding: 14px 24px;
+    border-radius: 12px;
+    border: none;
+    background: white;
+    color: #667eea;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.slide-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.slide-btn:active {
+    transform: translateY(0);
+}
+
+.slide-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.slide-btn-back {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.slide-btn-next {
+    background: white;
+    color: #667eea;
+}
+
+.slide-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.slide-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: white;
+}
+
+@media (max-width: 640px) {
+    .corner-buttons {
+        top: 12px;
+        left: 12px;
+        gap: 8px;
+    }
+
+    .corner-btn {
+        width: 42px;
+        height: 42px;
+    }
+
+    .corner-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .slide-modal {
+        padding: 32px 24px;
+        border-radius: 20px;
+    }
+
+    .slide-title {
+        font-size: 24px;
+    }
+
+    .slide-text {
+        font-size: 15px;
+    }
+
+    .slide-icon {
+        width: 64px;
+        height: 64px;
+    }
+
+    .slide-icon svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    .slide-btn {
+        padding: 12px 20px;
+        font-size: 15px;
+    }
+
+    .slide-navigation {
+        flex-direction: column;
+    }
+
+    .slide-btn-back {
+        order: 2;
+    }
+
+    .slide-btn-next {
+        order: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .slide-modal,
+    .slide-modal-overlay,
+    .corner-btn,
+    .slide-btn,
+    .slide-modal-close {
+        transition: none;
+    }
+
+    .slide-icon {
+        animation: none;
+    }
+}
+
+@media (prefers-contrast: high) {
+    .corner-btn {
+        border: 2px solid currentColor;
+    }
+
+    .slide-modal {
+        border: 2px solid white;
+    }
+}
+
+button:has-text("STOP AR") {
+    display: none !important;
 }
