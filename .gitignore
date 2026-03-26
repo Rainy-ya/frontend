@@ -21,6 +21,7 @@ public/sounds/test_sound.mp3
 
 src/generatedClothSystem.js
 src/generatedPhysicsSystem.js
+src/playground.js
 
 node_modules
 dist
