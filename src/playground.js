@@ -7,8 +7,7 @@ import { createPresetExpressions, FacialExpressionSystem } from './facialExpress
 import { Movements } from './movements.js';
 import { AnimationController } from './animations.js';
 import { ModelLoader } from './modelLoader.js';
-import { SimpleHairPhysics} from './generatedPhysicsSystem.js';
-import { SkirtPhysics } from './generatedClothSystem.js';
+import { HairPhysicsSystem } from './physicsSimulation.js';
 
 // Global variables
 let camera, scene, renderer;
@@ -85,7 +84,7 @@ async function init() {
     modelLoader = new ModelLoader();
     await modelLoader.loadGuideCharacter(scene);
 
-    hairPhysics = new SimpleHairPhysics();
+    /*hairPhysics = new SimpleHairPhysics();
     hairPhysics.setupFromModel(modelLoader.guideCharModel);
 
     hairPhysics.addCollisionSphere('head_neck_upper_054', 0.07, modelLoader.guideCharModel);
@@ -103,7 +102,7 @@ async function init() {
     skirtPhysics.addCollider(modelLoader.bones.leftThigh, 0.08, new THREE.Vector3(0, -0.05, 0));
     skirtPhysics.addCollider(modelLoader.bones.rightThigh, 0.08, new THREE.Vector3(0, -0.05, 0));
 
-    skirtPhysics.setWind(5, 0, 0);
+    skirtPhysics.setWind(5, 0, 0);*/
 
     expressionSystem = new FacialExpressionSystem(modelLoader.guideCharModel);
     createPresetExpressions(expressionSystem);
@@ -246,7 +245,7 @@ function animate() {
     if (mixers)
         mixers.forEach(mixer => mixer.update(delta));
 
-    if (hairPhysics && modelLoader.bones.head && modelLoader.guideCharModel && modelLoader.guideCharModel.visible) {
+    /*if (hairPhysics && modelLoader.bones.head && modelLoader.guideCharModel && modelLoader.guideCharModel.visible) {
         hairPhysics.update(delta, modelLoader.bones.head);
 
         if (window.updateBoneMarkers){
@@ -255,7 +254,7 @@ function animate() {
     }
 
     if (skirtPhysics && modelLoader.bones.pelvis && modelLoader.guideCharModel && modelLoader.guideCharModel.visible)
-        skirtPhysics.update(delta, modelLoader.bones.pelvis);
+        skirtPhysics.update(delta, modelLoader.bones.pelvis);*/
 
     updateBlinkAnimation(delta);
 
