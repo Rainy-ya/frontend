@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="tutorial-modal.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>project-ar</title>
   </head>
@@ -64,9 +63,10 @@
     </div> 
     <div id="scene-container"></div>
 
-    <!-- Load tutorial modal system before other scripts -->
     <script src="tutorial-modal.js"></script>
     <script type="module" src="/src/main.js"></script>
     <script type="module" src="/src/ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script class="eruda">eruda.init();</script>
   </body>
 </html>

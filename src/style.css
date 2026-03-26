@@ -13,6 +13,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Add to your styles.css */
+#eruda {
+    z-index: 10000 !important;
+}
+
+._eruda-icon {
+    z-index: 10000 !important;
+}
+
 a {
   font-weight: 500;
   color: #646cff;

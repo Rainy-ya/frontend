@@ -122,11 +122,11 @@ export class HairPhysicsSystem {
         this.enabled = true;
     }
     
-    addCollider(bone, radius, offset = new THREE.Vector3()) {
-
+    addCollider(boneName, radius, offset = new THREE.Vector3()) {
+        const bone = this.findBone(this.model, boneName);
         if (bone) {
 
-            const modelScale = bone.scale.x;
+            const modelScale = this.model.scale.x;
             const scaledRadius = radius * modelScale;
             
             const scaledOffset = offset.clone().multiplyScalar(modelScale);

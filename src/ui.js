@@ -16,8 +16,171 @@ const exitButton = document.getElementById('exitButton');
 
 let isRecording = false;
 let isARActive = false;
-let isModelPlaced = false; // ADD THIS
-let currentRecognition = null; // ADD THIS - to track active recognition
+let isModelPlaced = false; 
+let currentRecognition = null; 
+let pendingTranscript = null;
+
+function createConfirmationUI() {
+    const confirmDiv = document.createElement('div');
+    confirmDiv.id = 'transcriptConfirm';
+    confirmDiv.className = 'transcript-confirm hidden';
+    confirmDiv.innerHTML = `
+        <div class="transcript-box">
+            <div class="transcript-label">Та үүнийг хэлсэн үү?</div>
+            <div class="transcript-text" id="transcriptPreview"></div>
+            <div class="transcript-actions">
+                <button class="transcript-btn transcript-btn-edit" id="editBtn">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Засах
+                </button>
+                <button class="transcript-btn transcript-btn-cancel" id="cancelBtn">Цуцлах</button>
+                <button class="transcript-btn transcript-btn-send" id="sendBtn">
+                    Илгээх
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(confirmDiv);
+    
+    document.getElementById('editBtn').addEventListener('click', editTranscript);
+    document.getElementById('cancelBtn').addEventListener('click', cancelTranscript);
+    document.getElementById('sendBtn').addEventListener('click', sendTranscript);
+}
+
+function showTranscriptConfirmation(transcript) {
+    pendingTranscript = transcript;
+    const confirmDiv = document.getElementById('transcriptConfirm');
+    const previewText = document.getElementById('transcriptPreview');
+    
+    previewText.textContent = transcript;
+    confirmDiv.classList.remove('hidden');
+    setTimeout(() => confirmDiv.classList.add('visible'), 10);
+}
+
+function hideTranscriptConfirmation() {
+    const confirmDiv = document.getElementById('transcriptConfirm');
+    confirmDiv.classList.remove('visible');
+    setTimeout(() => {
+        confirmDiv.classList.add('hidden');
+        pendingTranscript = null;
+    }, 300);
+}
+
+function editTranscript() {
+    const previewText = document.getElementById('transcriptPreview');
+    const currentText = previewText.textContent;
+    
+    previewText.contentEditable = true;
+    previewText.focus();
+    
+    const range = document.createRange();
+    range.selectNodeContents(previewText);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    
+    previewText.addEventListener('blur', () => {
+        previewText.contentEditable = false;
+        pendingTranscript = previewText.textContent;
+    });
+}
+
+function cancelTranscript() {
+    hideTranscriptConfirmation();
+    micLabel.textContent = 'Энд дарж ярина уу';
+}
+
+async function sendTranscript() {
+    if (!pendingTranscript) return;
+    
+    hideTranscriptConfirmation();
+    micLabel.textContent = 'Боловсруулж байна...';
+    
+    try {
+
+        const result = await window.sendToAPI(pendingTranscript);
+        
+        if (result.userInput) {
+            showUserMessage(result.userInput);
+        }
+        
+        if (result.answer) {
+            showAssistantMessage(result.answer);
+        }
+        
+        setTimeout(hideMessages, 10000);
+    } catch (error) {
+        console.error('Error:', error);
+        showAssistantMessage(error);
+    } finally {
+        micLabel.textContent = 'Энд дарж ярина уу';
+    }
+}
+
+micButton.addEventListener('click', async () => {
+
+    // If currently recording, stop it
+    if (isRecording) {
+        if (window.speechManager) {
+            window.speechManager.stop();
+        }
+        isRecording = false;
+        micButton.classList.remove('recording');
+        micLabel.textContent = 'Энд дарж ярина уу';
+        console.log('Recording stopped by user');
+        return;
+    }
+
+    if (!isModelPlaced) {
+        console.warn('Model not placed yet');
+        micLabel.textContent = 'Хөтөчийг байршуулна уу';
+        return;
+    }
+
+    isRecording = true;
+    micButton.classList.add('recording');
+    micLabel.textContent = 'Ярьж байна... (дахин дарж зогсооно)';
+
+    try {
+        if (window.ask) {
+            const result = await window.ask();
+            
+            // Handle cancellation
+            if (result.cancelled) {
+                console.log('User cancelled recognition');
+                return;
+            }
+            
+            // Show confirmation UI
+            if (result.needsConfirmation && result.userInput) {
+                showTranscriptConfirmation(result.userInput);
+            } 
+            // Or show answer directly (for no-speech case)
+            else if (result.answer) {
+                showAssistantMessage(result.answer);
+                setTimeout(hideMessages, 10000);
+            }
+        }
+    } catch (error) {
+        console.error('Recognition error:', error);
+        // Only show error message for real errors, not cancellations
+        if (error !== 'aborted' && error?.error !== 'aborted') {
+            showAssistantMessage('Уучлаарай, алдаа гарлаа.');
+        }
+    } finally {
+        isRecording = false;
+        micButton.classList.remove('recording');
+        // Don't reset label if we're showing confirmation
+        if (!pendingTranscript) {
+            micLabel.textContent = 'Энд дарж ярина уу';
+        }
+    }
+});
 
 function showLoading(text = 'Уншиж байна...') {
     loadingText.textContent = text;
@@ -79,7 +242,6 @@ function startARSession() {
         exitButton.classList.add('visible');
         controlButtons.classList.add('visible');
         
-        // Disable mic button until model is placed
         if (!isModelPlaced) {
             micButton.disabled = true;
             micButton.style.opacity = '0.5';
@@ -111,7 +273,6 @@ function modelReady() {
         micContainer.classList.add('visible');
 }
 
-// ADD THIS - New function to enable mic when model is placed
 function modelPlaced() {
     isModelPlaced = true;
     micButton.disabled = false;
@@ -120,61 +281,6 @@ function modelPlaced() {
     micLabel.textContent = 'Энд дарж ярина уу';
     console.log('Model placed, mic button enabled');
 }
-
-// UPDATED - Microphone button with stop recording feature
-micButton.addEventListener('click', async () => {
-
-    // If already recording, stop it
-    if (isRecording) {
-        if (currentRecognition) {
-            currentRecognition.stop();
-            console.log('Speech recognition stopped manually');
-        }
-        isRecording = false;
-        micButton.classList.remove('recording');
-        micLabel.textContent = 'Энд дарж ярина уу';
-        return;
-    }
-
-    // Check if model is placed
-    if (!isModelPlaced) {
-        console.warn('Model not placed yet');
-        return;
-    }
-
-    isRecording = true;
-    micButton.classList.add('recording');
-    micLabel.textContent = 'Ярьж байна... (дахин дарж зогсооно)';
-
-    try {
-        if (window.ask) {
-            const result = await window.ask();
-            
-            // Store the recognition instance to stop it later
-            // (You'll need to modify your speechRecognition.js to expose this)
-            
-            if (result.userInput) {
-                showUserMessage(result.userInput);
-            }
-            
-            if (result.answer) {
-                showAssistantMessage(result.answer);
-            }
-            
-            setTimeout(hideMessages, 10000);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        if (error !== 'aborted' && error.error !== 'aborted') {
-            showAssistantMessage('Уучлаарай, алдаа гарлаа.');
-        }
-    } finally {
-        isRecording = false;
-        micButton.classList.remove('recording');
-        micLabel.textContent = 'Энд дарж ярина уу';
-        currentRecognition = null;
-    }
-});
 
 clearButton.addEventListener('click', () => {
     hideMessages();
@@ -273,7 +379,6 @@ class SlideModal {
             }
         });
 
-        // Close on overlay click
         this.modal.addEventListener('click', (e) => {
             if (e.target === this.modal) {
                 this.close();
@@ -445,7 +550,6 @@ function createCornerButtons() {
     `;
     document.body.appendChild(container);
 
-    // Add event listeners
     document.getElementById('warningBtn').addEventListener('click', () => {
         warningModal.open();
     });
@@ -455,11 +559,10 @@ function createCornerButtons() {
     });
 }
 
-// Initialize on page load
 window.addEventListener('DOMContentLoaded', () => {
+    createConfirmationUI();
     createCornerButtons();
 
-    // Show warning modal on first visit
     if (warningModal.shouldShow()) {
         setTimeout(() => {
             warningModal.open();
@@ -467,7 +570,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Export for external use
 window.slideModals = {
     warning: warningModal,
     tutorial: tutorialModal
@@ -481,7 +583,7 @@ window.arUI = {
     showAssistantMessage,
     hideMessages,
     modelReady,
-    modelPlaced, // ADD THIS
+    modelPlaced, 
     exitButton
 };
 

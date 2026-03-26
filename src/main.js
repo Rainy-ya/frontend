@@ -280,6 +280,6 @@ function fadeInModel(model, duration) {
     animate();
 }
 
-// Export for use in HTML
 window.ask = () => speechManager.ask();
+window.sendToAPI = (text) => speechManager.sendToAPI(text);
 window.renderer = renderer;

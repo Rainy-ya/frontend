@@ -15,6 +15,121 @@ body.ar-mode {
     background: transparent;
 }
 
+.eruda {
+    z-index: 10000 !important;
+}
+
+._eruda-icon {
+    z-index: 10000 !important;
+}
+
+.transcript-confirm {
+    position: fixed;
+    bottom: 140px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    opacity: 0;
+    transition: all 0.3s ease-out;
+    z-index: 200;
+    pointer-events: none;
+}
+
+.transcript-confirm.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+
+.transcript-confirm.hidden {
+    display: none;
+}
+
+.transcript-box {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    min-width: 300px;
+    max-width: 400px;
+}
+
+.transcript-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.transcript-text {
+    font-size: 16px;
+    line-height: 1.5;
+    color: #1f2937;
+    padding: 12px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    min-height: 50px;
+}
+
+.transcript-text[contenteditable="true"] {
+    border: 2px solid #667eea;
+    outline: none;
+}
+
+.transcript-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.transcript-btn {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.transcript-btn-edit {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.transcript-btn-edit:hover {
+    background: #e5e7eb;
+}
+
+.transcript-btn-cancel {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.transcript-btn-cancel:hover {
+    background: #fecaca;
+}
+
+.transcript-btn-send {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.transcript-btn-send:hover {
+    opacity: 0.9;
+}
+
+.transcript-btn:active {
+    transform: scale(0.98);
+}
+
 .loading-overlay {
     display: flex;
     position: fixed;
@@ -137,7 +252,7 @@ body.ar-mode {
 
 .chat-container {
     position: fixed;
-    top: 20px;
+    top: 100px;
     left: 20px;
     right: 20px;
     display: flex;
