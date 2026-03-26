@@ -144,39 +144,49 @@ micButton.addEventListener('click', async () => {
 
     isRecording = true;
     micButton.classList.add('recording');
-    micLabel.textContent = 'Ярьж байна... (дахин дарж зогсооно)';
+    micLabel.textContent = 'Сонсож байна... (дахин дарж зогсооно)';
 
     try {
         if (window.ask) {
             const result = await window.ask();
             
-            // Handle cancellation
+            // Handle cancellation or timeout
             if (result.cancelled) {
-                console.log('User cancelled recognition');
+                console.log('Recognition cancelled or timed out');
+                if (result.timeout) {
+                    showAssistantMessage('Яриа сонсогдсонгүй. Дахин оролдоно уу.');
+                    setTimeout(hideMessages, 5000);
+                }
                 return;
             }
             
-            // Show confirmation UI
+            // If default audio was played (no-speech or empty)
+            if (result.playedDefault) {
+                console.log('Default audio played, no further action needed');
+                // Optionally show a message
+                showAssistantMessage('Яриа сонсогдсонгүй.');
+                setTimeout(hideMessages, 5000);
+                return;
+            }
+            
+            // Show confirmation UI for valid transcript
             if (result.needsConfirmation && result.userInput) {
                 showTranscriptConfirmation(result.userInput);
-            } 
-            // Or show answer directly (for no-speech case)
-            else if (result.answer) {
-                showAssistantMessage(result.answer);
-                setTimeout(hideMessages, 10000);
+                return; // Don't reset recording state yet - confirmation UI is showing
             }
         }
     } catch (error) {
         console.error('Recognition error:', error);
-        // Only show error message for real errors, not cancellations
+        // Only show error for real errors
         if (error !== 'aborted' && error?.error !== 'aborted') {
             showAssistantMessage('Уучлаарай, алдаа гарлаа.');
+            setTimeout(hideMessages, 5000);
         }
     } finally {
-        isRecording = false;
-        micButton.classList.remove('recording');
-        // Don't reset label if we're showing confirmation
+        // Always reset recording state UNLESS we're showing confirmation
         if (!pendingTranscript) {
+            isRecording = false;
+            micButton.classList.remove('recording');
             micLabel.textContent = 'Энд дарж ярина уу';
         }
     }
