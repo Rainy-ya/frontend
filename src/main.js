@@ -173,7 +173,7 @@ function render(timestamp, frame) {
                     
                     if (!modelLoader.guideCharModel.visible) {
                         modelLoader.guideCharModel.visible = true;
-                        
+                        window.arUI.modelPlaced();
                         if (!hasFadedIn) {
                             hasFadedIn = true;
                             fadeInModel(modelLoader.guideCharModel, 1000);
@@ -198,6 +198,7 @@ function render(timestamp, frame) {
         if (hitTestSuccess && modelLoader.guideCharModel) {
             onSelect(indicator, modelLoader.guideCharModel);
             hitTestSuccess = false;
+            window.arUI.modelPlaced();
         }
 
         // Update scene objects and animations

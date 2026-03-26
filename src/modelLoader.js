@@ -44,6 +44,15 @@ export class ModelLoader {
                             this.bones.eyeballLeft = obj;
                             this.boneInitialRotations.eyeballLeft = obj.rotation.clone();
                         }
+                        if (obj.isBone &&  obj.name === 'pelvis_04') {
+                            this.bones.pelvis = obj;
+                        }
+                        if (obj.name === 'leg_left_thigh_05') {
+                            this.bones.leftThigh = obj;
+                        }
+                        if (obj.name === 'leg_right_thigh_09') {
+                            this.bones.rightThigh = obj;
+                        }
                     }
                 });
 
@@ -52,14 +61,14 @@ export class ModelLoader {
                         obj.material.transparent = true;
                         obj.material.opacity = 0;
                     }
-                });
+                }); //AR uncomment
 
                 this.guideCharModel.wireframe = true;
                 this.guideCharModel.matrixAutoUpdate = true;
-                this.guideCharModel.visible = false;
+                this.guideCharModel.visible = false; //AR - FALSE
                 scene.add(this.guideCharModel);
 
-                window.arUI.hideLoading();
+                window.arUI.hideLoading(); 
 
                 resolve(this);
             }, undefined, reject);

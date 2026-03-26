@@ -3,12 +3,12 @@ import { FBXLoader } from 'three/examples/jsm/Addons.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 //import { hitTest, createIndicator, onSelect} from './hit-test-main.js';
 import { OrbitControls } from 'three/examples/jsm/Addons.js';
-import { HairPhysicsSystem } from './physicsSimulation.js';
-import { createGifts, createSnowfall, createSnowyPlatform, createXmasTree } from './scene.js';
 import { createPresetExpressions, FacialExpressionSystem } from './facialExpression.js';
 import { Movements } from './movements.js';
 import { AnimationController } from './animations.js';
 import { ModelLoader } from './modelLoader.js';
+import { SimpleHairPhysics} from './generatedPhysicsSystem.js';
+import { SkirtPhysics } from './generatedClothSystem.js';
 
 // Global variables
 let camera, scene, renderer;
@@ -18,33 +18,6 @@ let expressionSystem;
 let movementsSystem;
 let animationSystem;
 let modelLoader;
-
-// Model Glabal variables
-let guideCharModel;
-let guideCharHeadBone;
-let guideCharJawBone;
-let guideCharJawBoneFisrtRotZ;
-let guideCharEyelidBone;
-let guideCharEyelidBoneFirztRotZ;
-let guideCharEyeballBoneRight;
-let guideCharEyeballBoneLeftFirstRotZ;
-let guideCharEyeballBoneLeft;
-let guideCharEyeballBoneRightPos;
-let eyeTrackingEnabled = true;
-let guideCharEyeballBoneLeftInitialRot;
-let guideCharEyeballBoneRightInitialRot;
-let guideCharEyebrowBone;
-let guideCharShoulderLeft;
-let guideCharShoulderRight;
-let spineUpper;
-let spineLower;
-let spineMiddle;
-
-// Smoothing variables
-let smoothedPosition = new THREE.Vector3();
-let smoothedQuaternion = new THREE.Quaternion();
-let smoothingFactor = 0.1;
-let isFirstFrame = true;
 
 //Audio variables
 let audioBuffer;
@@ -63,9 +36,7 @@ let blinkPhase = 0;
 
 //Physics related variables
 let hairPhysics;
-
-let isSpeaking = false;
-let lastAudioCheckTime = 0;
+let skirtPhysics;
 
 let clock = new THREE.Clock();
 let mixers = [];
@@ -114,25 +85,25 @@ async function init() {
     modelLoader = new ModelLoader();
     await modelLoader.loadGuideCharacter(scene);
 
-        /*let bones = [];
-        guideCharModel.traverse((object) => {
-            if (object.isSkinnedMesh && object.skeleton) {
-                object.skeleton.bones.forEach((bone, index) => {
-                    console.log(`${index}: Bone name: ${bone.name}`);
-                    bones.push(bone);
-                });
-            }
-        });
-        console.log(`Total bones in guide character: ${bones.length}`);*/
+    hairPhysics = new SimpleHairPhysics();
+    hairPhysics.setupFromModel(modelLoader.guideCharModel);
 
-    hairPhysics = new HairPhysicsSystem();
-    hairPhysics.addHairChainsFromModel(modelLoader.guideCharModel);
+    hairPhysics.addCollisionSphere('head_neck_upper_054', 0.07, modelLoader.guideCharModel);
+    hairPhysics.addCollisionSphere('arm_left_shoulder_1_099', 0.08, modelLoader.guideCharModel);
+    hairPhysics.addCollisionSphere('arm_right_shoulder_1_0122', 0.08, modelLoader.guideCharModel);
+    hairPhysics.addCollisionSphere('spine_upper_052', 0.16, modelLoader.guideCharModel);
+    hairPhysics.addCollisionSphere('head_neck_lower_053', 0.04, modelLoader.guideCharModel);
 
-    hairPhysics.addCollider('head_neck_upper_054', 0.07, new THREE.Vector3(0, 0.05, 0));
-    hairPhysics.addCollider('arm_left_shoulder_1_099', 0.08, new THREE.Vector3(0.075, -0.03, 0));
-    hairPhysics.addCollider('arm_right_shoulder_1_0122', 0.08, new THREE.Vector3(-0.075, -0.03, 0));
-    hairPhysics.addCollider('spine_upper_052', 0.16, new THREE.Vector3(0, -0.025, 0));
-    hairPhysics.addCollider('head_neck_lower_053', 0.04, new THREE.Vector3(0, 0, 0));
+    hairPhysics.setWind(1);
+
+    skirtPhysics = new SkirtPhysics();
+    skirtPhysics.setup(modelLoader.guideCharModel);
+
+    skirtPhysics.addCollider(modelLoader.bones.pelvis, 0.12, new THREE.Vector3(0, 0, 0));
+    skirtPhysics.addCollider(modelLoader.bones.leftThigh, 0.08, new THREE.Vector3(0, -0.05, 0));
+    skirtPhysics.addCollider(modelLoader.bones.rightThigh, 0.08, new THREE.Vector3(0, -0.05, 0));
+
+    skirtPhysics.setWind(5, 0, 0);
 
     expressionSystem = new FacialExpressionSystem(modelLoader.guideCharModel);
     createPresetExpressions(expressionSystem);
@@ -169,9 +140,9 @@ async function init() {
 
 function render(timestamp, frame) {
 
-    if (guideCharHeadBone) {
+    if (modelLoader.guideCharModel && modelLoader.bones.head) {
 
-        const headWorldPos = guideCharHeadBone.getWorldPosition(new THREE.Vector3());
+        const headWorldPos = modelLoader.bones.head.getWorldPosition(new THREE.Vector3());
 
         orbitControls.target.lerp(headWorldPos, 0.1);
         orbitControls.update();
@@ -194,82 +165,74 @@ function render(timestamp, frame) {
         const targetY = yaw;
         const targetZ = pitch;
         
-        guideCharHeadBone.rotation.y = THREE.MathUtils.lerp(guideCharHeadBone.rotation.y, targetY, 0.15);
-        guideCharHeadBone.rotation.z = THREE.MathUtils.lerp(guideCharHeadBone.rotation.z, targetZ, 0.15);
-        guideCharHeadBone.rotation.x = 0; 
+        modelLoader.bones.head.rotation.y = THREE.MathUtils.lerp(modelLoader.bones.head.rotation.y, targetY, 0.15);
+        modelLoader.bones.head.rotation.z = THREE.MathUtils.lerp(modelLoader.bones.head.rotation.z, targetZ, 0.15);
+        modelLoader.bones.head.rotation.x = 0; 
 
     }
 
-    if (guideCharEyeballBoneLeft && guideCharEyeballBoneRight && guideCharEyeballBoneLeftInitialRot && guideCharEyeballBoneRightInitialRot){
+    if (modelLoader.bones.eyeballLeft && modelLoader.bones.eyeballRight && modelLoader.boneInitialRotations.eyeballLeft && modelLoader.boneInitialRotations.eyeballRight){
 
-    const cameraPos = camera.position.clone();
-    
-    // LEFT EYE
-    const leftEyeWorldPos = guideCharEyeballBoneLeft.getWorldPosition(new THREE.Vector3());
-    const leftDirection = new THREE.Vector3().subVectors(cameraPos, leftEyeWorldPos).normalize();
-    
-    const leftYaw = Math.atan2(leftDirection.x, leftDirection.z);
-    const leftPitch = Math.atan2(leftDirection.y, 
-        Math.sqrt(leftDirection.x * leftDirection.x + leftDirection.z * leftDirection.z)
-    );
-    
-    // RIGHT EYE
-    const rightEyeWorldPos = guideCharEyeballBoneRight.getWorldPosition(new THREE.Vector3());
-    const rightDirection = new THREE.Vector3().subVectors(cameraPos, rightEyeWorldPos).normalize();
-    
-    const rightYaw = Math.atan2(rightDirection.x, rightDirection.z);
-    const rightPitch = Math.atan2(rightDirection.y, 
-        Math.sqrt(rightDirection.x * rightDirection.x + rightDirection.z * rightDirection.z)
-    );
-    
-    // Limit eye movement range
-    const maxYaw = Math.PI / 24;
-    const maxPitch = Math.PI / 24;
-    
-    const clampedLeftYaw = THREE.MathUtils.clamp(leftYaw, -maxYaw, maxYaw);
-    const clampedLeftPitch = THREE.MathUtils.clamp(leftPitch, -maxPitch, maxPitch);
-    
-    const clampedRightYaw = THREE.MathUtils.clamp(rightYaw, -maxYaw, maxYaw);
-    const clampedRightPitch = THREE.MathUtils.clamp(rightPitch, -maxPitch, maxPitch);
-    
-    const smoothness = 0.2;
-    
-    // FIXED: Y is left/right, Z is up/down, and reverse the direction
-    const targetLeftY = guideCharEyeballBoneLeftInitialRot.y - clampedLeftYaw;   // Reversed
-    const targetLeftZ = guideCharEyeballBoneLeftInitialRot.z - clampedLeftPitch; // Z for up/down
-    
-    const targetRightY = guideCharEyeballBoneRightInitialRot.y - clampedRightYaw;   // Reversed
-    const targetRightZ = guideCharEyeballBoneRightInitialRot.z - clampedRightPitch; // Z for up/down
-    
-    guideCharEyeballBoneLeft.rotation.y = THREE.MathUtils.lerp(
-        guideCharEyeballBoneLeft.rotation.y, 
-        targetLeftY, 
-        smoothness
-    );
-    guideCharEyeballBoneLeft.rotation.z = THREE.MathUtils.lerp(
-        guideCharEyeballBoneLeft.rotation.z, 
-        targetLeftZ, 
-        smoothness
-    );
-    
-    guideCharEyeballBoneRight.rotation.y = THREE.MathUtils.lerp(
-        guideCharEyeballBoneRight.rotation.y, 
-        targetRightY, 
-        smoothness
-    );
-    guideCharEyeballBoneRight.rotation.z = THREE.MathUtils.lerp(
-        guideCharEyeballBoneRight.rotation.z, 
-        targetRightZ, 
-        smoothness
-    );
-}
-
-    if (isSpeaking) 
-        updateJawAnimation();
-    else if (guideCharJawBone) {
-        //console.log(guideCharJawBoneFisrtRotZ);
-        guideCharJawBone.rotation.z = THREE.MathUtils.lerp(guideCharJawBone.rotation.z, guideCharJawBoneFisrtRotZ, 0.1);
-            //guideCharJawBone.rotation.z += 0.2;
+        const cameraPos = camera.position.clone();
+        
+        // LEFT EYE
+        const leftEyeWorldPos = modelLoader.bones.eyeballLeft.getWorldPosition(new THREE.Vector3());
+        const leftDirection = new THREE.Vector3().subVectors(cameraPos, leftEyeWorldPos).normalize();
+        
+        const leftYaw = Math.atan2(leftDirection.x, leftDirection.z);
+        const leftPitch = Math.atan2(leftDirection.y, 
+            Math.sqrt(leftDirection.x * leftDirection.x + leftDirection.z * leftDirection.z)
+        );
+        
+        // RIGHT EYE
+        const rightEyeWorldPos = modelLoader.bones.eyeballRight.getWorldPosition(new THREE.Vector3());
+        const rightDirection = new THREE.Vector3().subVectors(cameraPos, rightEyeWorldPos).normalize();
+        
+        const rightYaw = Math.atan2(rightDirection.x, rightDirection.z);
+        const rightPitch = Math.atan2(rightDirection.y, 
+            Math.sqrt(rightDirection.x * rightDirection.x + rightDirection.z * rightDirection.z)
+        );
+        
+        // Limit eye movement range
+        const maxYaw = Math.PI / 24;
+        const maxPitch = Math.PI / 24;
+        
+        const clampedLeftYaw = THREE.MathUtils.clamp(leftYaw, -maxYaw, maxYaw);
+        const clampedLeftPitch = THREE.MathUtils.clamp(leftPitch, -maxPitch, maxPitch);
+        
+        const clampedRightYaw = THREE.MathUtils.clamp(rightYaw, -maxYaw, maxYaw);
+        const clampedRightPitch = THREE.MathUtils.clamp(rightPitch, -maxPitch, maxPitch);
+        
+        const smoothness = 0.2;
+        
+        // FIXED: Y is left/right, Z is up/down, and reverse the direction
+        const targetLeftY = modelLoader.boneInitialRotations.eyeballLeft.y - clampedLeftYaw;   // Reversed
+        const targetLeftZ = modelLoader.boneInitialRotations.eyeballLeft.z - clampedLeftPitch; // Z for up/down
+        
+        const targetRightY = modelLoader.boneInitialRotations.eyeballRight.y - clampedRightYaw;   // Reversed
+        const targetRightZ = modelLoader.boneInitialRotations.eyeballRight.z - clampedRightPitch; // Z for up/down
+        
+        modelLoader.bones.eyeballLeft.rotation.y = THREE.MathUtils.lerp(
+            modelLoader.bones.eyeballLeft.rotation.y, 
+            targetLeftY, 
+            smoothness
+        );
+        modelLoader.bones.eyeballLeft.rotation.z = THREE.MathUtils.lerp(
+            modelLoader.bones.eyeballLeft.rotation.z, 
+            targetLeftZ, 
+            smoothness
+        );
+        
+        modelLoader.bones.eyeballRight.rotation.y = THREE.MathUtils.lerp(
+            modelLoader.bones.eyeballRight.rotation.y, 
+            targetRightY, 
+            smoothness
+        );
+        modelLoader.bones.eyeballRight.rotation.z = THREE.MathUtils.lerp(
+            modelLoader.bones.eyeballRight.rotation.z, 
+            targetRightZ, 
+            smoothness
+        );
     }
 
     renderer.render(scene, camera);
@@ -283,13 +246,16 @@ function animate() {
     if (mixers)
         mixers.forEach(mixer => mixer.update(delta));
 
-    if (hairPhysics && guideCharHeadBone && guideCharModel && guideCharModel.visible) {
-        hairPhysics.update(delta, guideCharHeadBone);
+    if (hairPhysics && modelLoader.bones.head && modelLoader.guideCharModel && modelLoader.guideCharModel.visible) {
+        hairPhysics.update(delta, modelLoader.bones.head);
 
         if (window.updateBoneMarkers){
             window.updateBoneMarkers();
         }
     }
+
+    if (skirtPhysics && modelLoader.bones.pelvis && modelLoader.guideCharModel && modelLoader.guideCharModel.visible)
+        skirtPhysics.update(delta, modelLoader.bones.pelvis);
 
     updateBlinkAnimation(delta);
 
@@ -556,7 +522,6 @@ function playAudio(audioSource) {
     console.log('Audio playback started');
 }
 
-
 function getVolume() {
 
     if (!analyser || !audioData) return 0;
@@ -572,12 +537,12 @@ function getVolume() {
 
 function updateJawAnimation() {
 
-    if (!guideCharJawBone || !analyser) return;
+    if (!modelLoader.bones.jaw || !analyser) return;
 
     const volume = getVolume();
 
-    const maxJawOpen = guideCharJawBoneFisrtRotZ + 0.75; // Adjust
-    const minJawOpen = guideCharJawBoneFisrtRotZ; // is around -1.12...
+    const maxJawOpen = modelLoader.boneInitialRotations.jaw.z + 0.75; // Adjust
+    const minJawOpen = modelLoader.boneInitialRotations.jaw.z; // is around -1.12...
     const jawRotation = THREE.MathUtils.lerp(
         minJawOpen,
         maxJawOpen,
@@ -585,17 +550,17 @@ function updateJawAnimation() {
     );
     //console.log('Volume: ', volume.toFixed(3), '| Jaw rot.z: ', jawRotation.toFixed(3));
 
-    guideCharJawBone.rotation.z = jawRotation;
+    modelLoader.bones.jaw.rotation.z = jawRotation;
 }
 
 function updateBlinkAnimation(deltaTime) {
 
-    if (!guideCharEyelidBone) return;
+    if (!modelLoader.bones.eyelid) return;
 
     blinkTimer += deltaTime;
 
-    const openRotation = guideCharEyelidBoneFirztRotZ;  // -2.08 (open)
-    const closedRotation = -1.18;                                       // -1.18 (closed)
+    const openRotation = modelLoader.boneInitialRotations.eyelid;  // -2.08 (open)
+    const closedRotation = -1.18;                                                     // -1.18 (closed)
 
     if (!isBlinking && blinkTimer >= nextBlinkTime) {
         isBlinking = true;
@@ -607,13 +572,13 @@ function updateBlinkAnimation(deltaTime) {
 
         if (blinkPhase === 1) {
 
-            guideCharEyelidBone.rotation.z = THREE.MathUtils.lerp(
-                guideCharEyelidBone.rotation.z,
+            modelLoader.bones.eyelid.rotation.z = THREE.MathUtils.lerp(
+                modelLoader.bones.eyelid.rotation.z,
                 closedRotation,
                 blinkSpeed
             );
 
-            if (Math.abs(guideCharEyelidBone.rotation.z - closedRotation) < 0.05) {
+            if (Math.abs(modelLoader.bones.eyelid.rotation.z - closedRotation) < 0.05) {
                 blinkPhase = 2;
             }
         } 
@@ -625,13 +590,13 @@ function updateBlinkAnimation(deltaTime) {
         }
         else if (blinkPhase === 3) {
 
-            guideCharEyelidBone.rotation.z = THREE.MathUtils.lerp(
-                guideCharEyelidBone.rotation.z,
+            modelLoader.bones.eyelid.rotation.z = THREE.MathUtils.lerp(
+                modelLoader.bones.eyelid.rotation.z,
                 openRotation,
                 blinkSpeed
             );
 
-            if (Math.abs(guideCharEyelidBone.rotation.z - openRotation) < 0.05) {
+            if (Math.abs(modelLoader.bones.eyelid.rotation.z - openRotation) < 0.05) {
                 isBlinking = false;
                 blinkPhase = 0;
                 blinkTimer = 0;
@@ -640,14 +605,12 @@ function updateBlinkAnimation(deltaTime) {
         }
     } else {
 
-        guideCharEyelidBone.rotation.z = THREE.MathUtils.lerp(
-            guideCharEyelidBone.rotation.z,
+        modelLoader.bones.eyelid.rotation.z = THREE.MathUtils.lerp(
+            modelLoader.bones.eyelid.rotation.z,
             openRotation,
             0.2
         );
     }
-
-    //console.log('Eyelid Z:', guideCharEyelidBone.rotation.z.toFixed(3));
 }
 
 window.ask = ask;

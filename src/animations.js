@@ -207,14 +207,7 @@ export class AnimationController {
         this.spineUpper = this.findBone('spine_upper_052');
         this.shoulderLeft = this.findBone('arm_left_shoulder_1_099');
         this.shoulderRight = this.findBone('arm_right_shoulder_1_0122');
-        
-        console.log('Breathing system bones:', {
-            spineLower: !!this.spineLower,
-            spineMiddle: !!this.spineMiddle,
-            spineUpper: !!this.spineUpper,
-            shoulderLeft: !!this.shoulderLeft,
-            shoulderRight: !!this.shoulderRight
-        });
+
     }
     
     storeInitialPose() {
@@ -316,12 +309,10 @@ export class AnimationController {
     
     setIntensity(value) {
         this.breathingIntensity = THREE.MathUtils.clamp(value, 0, 2);
-        console.log(`Breathing intensity: ${this.breathingIntensity.toFixed(2)}`);
     }
     
     setSpeed(value) {
         this.breathingSpeed = THREE.MathUtils.clamp(value, 0.1, 3);
-        console.log(`Breathing speed: ${this.breathingSpeed.toFixed(2)} breaths/sec`);
     }
     
     reset() {

@@ -4,90 +4,99 @@ export class SpeechRecognitionManager {
         this.audioManager = audioManager;
         this.expressionSystem = expressionSystem;
         this.movementsSystem = movementsSystem;
+        this.currentRecognition = null;
     }
 
     // In speechRecognition.js
-async ask() {
-    
-    console.log('Starting speech recognition...');
+    async ask() {
+        
+        console.log('Starting speech recognition...');
 
-    return new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
 
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'mn-MN';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            this.currentRecognition = recognition;
 
-        recognition.start();
+            recognition.lang = 'mn-MN';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
 
-        recognition.onresult = async (event) => {
-            try {
+            recognition.start();
 
-                const transcript = event.results[0][0].transcript;
-                console.log('User said:', transcript);
+            recognition.onresult = async (event) => {
+                try {
 
-                if (!transcript || transcript.trim() === '') {
-                    await this.audioManager.loadAudioFromURL('/sounds/greeting_Rose.mp3');
+                    const transcript = event.results[0][0].transcript;
+                    console.log('User said:', transcript);
+
+                    if (!transcript || transcript.trim() === '') {
+                        await this.audioManager.loadAudioFromURL('/sounds/greeting_Rose.mp3');
+                        this.audioManager.play();
+                        
+                        resolve({ 
+                            userInput: 'No speech detected',
+                            answer: 'Default response' 
+                        });
+                        return;
+                    }
+
+                    const response = await fetch('https://backend-6w7c.vercel.app/api/ask', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question: transcript })
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Request failed: ${response.status} ${errorText}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('Answer:', data.answer);
+
+                    this.parseAndTriggerActions(data.answer);
+
+                    await this.audioManager.loadAudioFromBase64(data.audio);
                     this.audioManager.play();
                     
-                    resolve({ 
-                        userInput: 'No speech detected',
-                        answer: 'Default response' 
+                    resolve({
+                        userInput: transcript, 
+                        answer: data.answer
                     });
-                    return;
+                } catch (error) {
+                    console.error('Error processing question:', error);
+                    reject(error);
                 }
+            };
 
-                const response = await fetch('https://backend-6w7c.vercel.app/api/ask', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question: transcript })
-                });
+            recognition.onerror = async (event) => {
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Request failed: ${response.status} ${errorText}`);
+                console.error('Speech recognition error:', event.error);
+
+                if (event.error === 'no-speech' || event.error === 'aborted') {
+                    try {
+                        await this.audioManager.loadAudioFromURL('/sounds/greeting_Rose.mp3');
+                        this.audioManager.play();
+                        resolve({ 
+                            userInput: 'No speech detected',
+                            answer: 'No speech detected' 
+                        });
+                    } catch (audioError) {
+                        reject(audioError);
+                    }
+                } else {
+                    reject(event.error);
                 }
+            };
+        });
+    }
 
-                const data = await response.json();
-                console.log('Answer:', data.answer);
-
-                this.parseAndTriggerActions(data.answer);
-
-                await this.audioManager.loadAudioFromBase64(data.audio);
-                this.audioManager.play();
-                
-                // IMPORTANT: Return both userInput and answer
-                resolve({
-                    userInput: transcript,  // ADD THIS
-                    answer: data.answer
-                });
-            } catch (error) {
-                console.error('Error processing question:', error);
-                reject(error);
-            }
-        };
-
-        recognition.onerror = async (event) => {
-
-            console.error('Speech recognition error:', event.error);
-
-            if (event.error === 'no-speech') {
-                try {
-                    await this.audioManager.loadAudioFromURL('/sounds/greeting_Rose.mp3');
-                    this.audioManager.play();
-                    resolve({ 
-                        userInput: 'No speech detected',
-                        answer: 'No speech detected' 
-                    });
-                } catch (audioError) {
-                    reject(audioError);
-                }
-            } else {
-                reject(event.error);
-            }
-        };
-    });
-}
+    stop() {
+        if (this.currentRecognition) {
+            this.currentRecognition.stop();
+            this.currentRecognition = null;
+        }
+    }
     parseAndTriggerActions(text) {
 
         if (!text) return;

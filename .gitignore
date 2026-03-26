@@ -19,6 +19,9 @@ public/models/xmas_tree.glb
 public/sounds/greeting_default.mp3
 public/sounds/test_sound.mp3
 
+src/generatedClothSystem.js
+src/generatedPhysicsSystem.js
+
 node_modules
 dist
 dist-ssr
