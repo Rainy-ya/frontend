@@ -39,8 +39,7 @@ export class Movements{
             console.log('Head bone not found');
             return;
         }
-        
-        // Store current rotation as "neutral" so we return to head tracking position
+
         this.headNeutralRotation = {
             x: this.headBone.rotation.x,
             y: this.headBone.rotation.y,
@@ -64,7 +63,6 @@ export class Movements{
             return;
         }
         
-        // Store current rotation as "neutral" so we return to head tracking position
         this.headNeutralRotation = {
             x: this.headBone.rotation.x,
             y: this.headBone.rotation.y,
@@ -141,13 +139,12 @@ export class Movements{
                 
                 if (this.currentCycle >= this.gestureCycles) {
                     this.isShaking = false;
-                    this.isReturningToNeutral = true; // Start returning
+                    this.isReturningToNeutral = true;
                     this.headTargetRotation.y = this.headNeutralRotation.y;
                 }
             }
         }
     
-        // ONLY return to neutral if just finished a gesture
         if (this.isReturningToNeutral) {
             this.headBone.rotation.z = THREE.MathUtils.lerp(
                 this.headBone.rotation.z,
@@ -160,12 +157,11 @@ export class Movements{
                 this.gestureSmoothness
             );
             
-            // Check if close enough to neutral
             const rotDiff = Math.abs(this.headBone.rotation.z - this.headNeutralRotation.z) +
                            Math.abs(this.headBone.rotation.y - this.headNeutralRotation.y);
             
             if (rotDiff < 0.01) {
-                this.isReturningToNeutral = false; // Done returning, head tracking can take over
+                this.isReturningToNeutral = false; 
             }
         }
     }
@@ -174,7 +170,7 @@ export class Movements{
 
         this.isNodding = false;
         this.isShaking = false;
-        this.isReturningToNeutral = false; // Stop returning too
+        this.isReturningToNeutral = false; 
         this.currentCycle = 0;
         this.gestureProgress = 0;
 

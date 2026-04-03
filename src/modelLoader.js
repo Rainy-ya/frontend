@@ -24,7 +24,41 @@ export class ModelLoader {
                     obj.castShadow = true;
                     obj.receiveShadow = true;
 
-                    if (obj.isBone) {
+                    if (obj.isObject3D && obj.name === "headphone") {
+                        obj.visible = false;
+                        console.log(`Headphone object found and hidden: ${obj.name}`);
+                    }
+
+                    if (obj.isObject3D && obj.name === "shil001") {
+                        obj.visible = false;
+                        console.log(`Shil object found and hidden: ${obj.name}`);
+                    }
+                    
+                    //bone_44 - upper, bone_45 - lower heads
+                    if (obj.isBone && obj.name === "bone_44") {
+                        this.bones.head = obj;
+                        this.boneInitialRotations.head = obj.rotation.clone();
+                        console.log(`Head bone found: ${obj.name}`);
+                    }
+
+                    if (obj.isBone && obj.name === "bone_45009") {
+                        this.bones.jaw = obj;
+                        this.boneInitialRotations.jaw = obj.rotation.z;
+                        console.log(`Jaw bone found: ${obj.name}`);
+                    }
+
+                    if (obj.isBone && obj.name === "bone_45025") {
+                        this.bones.eyeballLeft = obj;
+                        this.boneInitialRotations.eyeballLeft = obj.rotation.clone();
+                        console.log(`Left eyeball bone found: ${obj.name}`);
+                    }
+
+                    if (obj.isBone && obj.name === "bone_45026") {
+                        this.bones.eyeballRight = obj;
+                        this.boneInitialRotations.eyeballRight = obj.rotation.clone();
+                        console.log(`Right eyeball bone found: ${obj.name}`);
+                    }
+                    /*if (obj.isBone) {
                         if (obj.name === 'head_neck_upper_054') {
                             this.bones.head = obj;
                         }
@@ -53,6 +87,13 @@ export class ModelLoader {
                         if (obj.name === 'leg_right_thigh_09') {
                             this.bones.rightThigh = obj;
                         }
+                    }*/
+
+                    //bone_44 - upper, bone_45 - lower heads
+                    if (obj.isBone && obj.name === "bone_45") {
+                        this.bones.head = obj;
+                        this.boneInitialRotations.head = obj.rotation.clone();
+                        console.log(`Head bone found: ${obj.name}`);
                     }
                 });
 

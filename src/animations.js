@@ -17,7 +17,7 @@ export class AnimationController {
         this.targetHeadRotation = { y: 0, z: 0 };
         this.previousCameraPos = new THREE.Vector3();
         this.smoothedCameraPos = new THREE.Vector3();
-        this.cameraMovementThreshold = 0.05; // Ignore tiny camera jitters
+        this.cameraMovementThreshold = 0.05; 
         this.isFirstHeadTrackingFrame = true;
         
         this.findBones();
@@ -51,8 +51,8 @@ export class AnimationController {
         pitch = THREE.MathUtils.clamp(pitch, minPitch, maxPitch);
 
         headBone.rotation.y = THREE.MathUtils.lerp(headBone.rotation.y, yaw, smoothingFactor);
-        headBone.rotation.z = THREE.MathUtils.lerp(headBone.rotation.z, pitch, smoothingFactor);
-        headBone.rotation.x = 0;
+        headBone.rotation.x = THREE.MathUtils.lerp(headBone.rotation.x, -pitch, smoothingFactor);
+        headBone.rotation.z = 0;
     }
 
     updateEyeTracking(camera){
@@ -153,7 +153,7 @@ export class AnimationController {
         this.blinkTimer += deltaTime;
 
         const openRotation = this.modelLoader.boneInitialRotations.eyelid;
-        const closedRotation = -1.18;
+        const closedRotation = -0.038;
 
         if (!this.isBlinking && this.blinkTimer >= this.nextBlinkTime) {
             this.isBlinking = true;
