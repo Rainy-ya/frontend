@@ -15,8 +15,18 @@ public/models/modelAnimation.blend
 public/models/modelAnimation.blend1
 public/models/stone_floor.glb
 public/models/xmas_tree.glb
+public/models/b_mubsi.glb
+public/models/b_mubsi.blend
+public/models/b_mubsi.blend1
+public/models/b_mubsi.fbx
+public/models/snowfall.glb
+public/models/model.glb
+
+public/resources/default_marker.png
+public/resources/marker_img.png
 
 public/sounds/greeting_default.mp3
+public/sounds/greeting_Rose.mp3
 public/sounds/test_sound.mp3
 
 src/generatedClothSystem.js

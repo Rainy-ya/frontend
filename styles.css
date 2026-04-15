@@ -15,14 +15,6 @@ body.ar-mode {
     background: transparent;
 }
 
-.eruda {
-    z-index: 10000 !important;
-}
-
-._eruda-icon {
-    z-index: 10000 !important;
-}
-
 .transcript-confirm {
     position: fixed;
     bottom: 140px;
@@ -32,6 +24,16 @@ body.ar-mode {
     transition: all 0.3s ease-out;
     z-index: 200;
     pointer-events: none;
+}
+
+.eruda-container {
+    z-index: 2147483647  !important;
+    position: fixed !important;
+    isolation: isolate !important;
+}
+
+.eruda-container *{
+    z-index: unset;
 }
 
 .transcript-confirm.visible {

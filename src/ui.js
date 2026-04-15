@@ -157,11 +157,10 @@ micButton.addEventListener('click', async () => {
                     showAssistantMessage('Яриа сонсогдсонгүй. Дахин оролдоно уу.');
                     setTimeout(hideMessages, 5000);
                 }
-                return;
             }
             
             // If default audio was played (no-speech or empty)
-            if (result.playedDefault) {
+            else if (result.playedDefault) {
                 console.log('Default audio played, no further action needed');
                 // Optionally show a message
                 showAssistantMessage('Яриа сонсогдсонгүй.');
@@ -170,7 +169,7 @@ micButton.addEventListener('click', async () => {
             }
             
             // Show confirmation UI for valid transcript
-            if (result.needsConfirmation && result.userInput) {
+            else if (result.needsConfirmation && result.userInput) {
                 showTranscriptConfirmation(result.userInput);
                 return; // Don't reset recording state yet - confirmation UI is showing
             }

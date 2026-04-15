@@ -60,7 +60,7 @@ export class SpeechRecognitionManager {
                         console.log('Empty transcript, playing default audio');
                         
                         // Load and play default audio
-                        await this.audioManager.loadAudioFromURL('/sounds/greeting_Rose.mp3');
+                        await this.audioManager.loadAudioFromURL('/sounds/greeting.mp3');
                         this.audioManager.play();
                         
                         // Clean up immediately
@@ -116,7 +116,7 @@ export class SpeechRecognitionManager {
                     console.log('No speech detected, playing default audio');
                     
                     try {
-                        await this.audioManager.loadAudioFromURL('/sounds/greeting_Rose.mp3');
+                        await this.audioManager.loadAudioFromURL('/sounds/greeting.mp3');
                         this.audioManager.play();
                     } catch (err) {
                         console.error('Error playing default audio:', err);
@@ -144,6 +144,10 @@ export class SpeechRecognitionManager {
                 clearTimeout(timeout);
                 console.log('Recognition ended');
                 // Don't call cleanup here - it's already called in onresult/onerror
+                if (this.isListening && !this.isProcessing) {
+                    this.cleanup();
+                    resolve({ cancelled: true});
+                }
             };
         });
     }

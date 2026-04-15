@@ -19,11 +19,27 @@ export class AnimationController {
         this.smoothedCameraPos = new THREE.Vector3();
         this.cameraMovementThreshold = 0.05; 
         this.isFirstHeadTrackingFrame = true;
+        this.mixer = null;
         
         this.findBones();
         this.storeInitialPose();
     }
 
+    playGreetingAnimation() {
+        if (!this.model) return;
+
+        const greetingClip = this.modelLoader.animation.greeting;
+        
+        if (!greetingClip) {
+            console.warn('No greeting animation found');
+            return;
+        }
+        const mixer = new THREE.AnimationMixer(this.model);
+        const action = mixer.clipAction(greetingClip);
+        this.mixer = mixer;
+        action.reset();
+        action.play();
+    }
 
     updateHeadTracking(camera, smoothingFactor = 0.15) {
 
@@ -130,11 +146,11 @@ export class AnimationController {
         if (!jawBone) return;
 
         const initialRotZ = this.modelLoader.boneInitialRotations.jaw;
-        const maxJawOpen = initialRotZ + 0.75;
+        const maxJawOpen = initialRotZ + 0.85;
         const minJawOpen = initialRotZ;
         
         const jawRotation = THREE.MathUtils.lerp(minJawOpen, maxJawOpen, volume);
-        jawBone.rotation.z = jawRotation;
+        jawBone.rotation.x = jawRotation;
     }
 
     resetJaw() {
@@ -142,7 +158,7 @@ export class AnimationController {
         if (!jawBone) return;
 
         const initialRotZ = this.modelLoader.boneInitialRotations.jaw;
-        jawBone.rotation.z = THREE.MathUtils.lerp(jawBone.rotation.z, initialRotZ, 0.1);
+        jawBone.rotation.x = THREE.MathUtils.lerp(jawBone.rotation.x, initialRotZ, 0.1);
     }
 
     updateBlinkAnimation(deltaTime) {

@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 import { ARButton } from 'three/examples/jsm/Addons.js';
 import { onSelect, hitTest, createIndicator } from './hitTest.js';
-import { HairPhysicsSystem } from './physicsSimulation.js';
-import { createSnowfall } from './scene.js';
 import { ModelLoader } from './modelLoader.js';
 import { AnimationController } from './animations.js';
 import { AudioManager } from './audioManager.js';
@@ -10,6 +8,7 @@ import { SpeechRecognitionManager } from './speechRecognition.js';
 import { ImageTrackingManager } from './imageTracking.js';
 import { createPresetExpressions, FacialExpressionSystem } from './facialExpression.js';
 import { Movements } from './movements.js';
+import { model } from '@tensorflow/tfjs';
 
 // Global variables
 let camera, scene, renderer, controller;
@@ -18,6 +17,7 @@ let mixers = [];
 let hitTestSuccess = false;
 let isImageTracked;
 let hasFadedIn = false;
+let greetingPlayed = false;
 
 // Managers
 let modelLoader;
@@ -25,13 +25,11 @@ let animationSystem;
 let audioManager;
 let speechManager;
 let imageTracker;
-let hairPhysics;
 let expressionSystem;
 let movementsSystem;
 
 // Scene objects
 let indicator;
-let snowfallModel;
 
 let clock = new THREE.Clock();
 
@@ -115,15 +113,6 @@ async function init() {
     animationSystem.setSpeed(0.3);
     animationSystem.setIntensity(0.4);
 
-    // Setup hair physics
-    hairPhysics = new HairPhysicsSystem();
-    hairPhysics.addHairChainsFromModel(modelLoader.guideCharModel);
-    hairPhysics.addCollider('head_neck_upper_054', 0.015, new THREE.Vector3(0, 0.002, 0.001));
-    hairPhysics.addCollider('head_neck_lower_053', 0.005, new THREE.Vector3(0, 0, 0.001));
-    hairPhysics.addCollider('arm_left_shoulder_1_099', 0.011, new THREE.Vector3(0.0075, -0.0012, 0));
-    hairPhysics.addCollider('arm_right_shoulder_1_0122', 0.011, new THREE.Vector3(-0.0075, -0.0012, 0));
-    hairPhysics.addCollider('spine_upper_052', 0.025, new THREE.Vector3(0, -0.0035, 0));
-
     expressionSystem = new FacialExpressionSystem(modelLoader.guideCharModel);
     createPresetExpressions(expressionSystem);
 
@@ -134,13 +123,6 @@ async function init() {
     await audioManager.init();
     
     speechManager = new SpeechRecognitionManager(audioManager, expressionSystem, movementsSystem);
-
-    // Scene objects
-    const { scene: snowfall, snowMixer } = await createSnowfall();
-    snowfallModel = snowfall;
-    snowfallModel.visible = false;
-    scene.add(snowfallModel);
-    mixers.push(snowMixer);
 
     window.addEventListener('resize', onWindowResize, false);
 }
@@ -204,10 +186,10 @@ function render(timestamp, frame) {
         // Update scene objects and animations
         if (modelLoader.guideCharModel && (modelLoader.guideCharModel.visible || isImageTracked)) {
 
-            snowfallModel.position.setFromMatrixPosition(indicator.matrix);
-
-            snowfallModel.visible = true;
-
+            if (!greetingPlayed) {
+                greetingPlayed = true;
+                greeting();
+            }
             // Update animations
             animationSystem.updateHeadTracking(camera, 0.15);
             animationSystem.updateEyeTracking(camera);
@@ -239,12 +221,6 @@ function animate() {
         animationSystem.updateBlinkAnimation(delta);
         animationSystem.updateIdling(delta);
     }
-
-    // Update hair physics
-    if (hairPhysics && modelLoader && modelLoader.bones.head && modelLoader.guideCharModel?.visible) {
-        hairPhysics.update(delta, modelLoader.bones.head);
-    }
-
     if (expressionSystem)
         expressionSystem.update(delta);
 
@@ -278,6 +254,16 @@ function fadeInModel(model, duration) {
     }
     
     animate();
+}
+
+async function greeting() {
+
+    if (animationSystem) 
+        animationSystem.playGreetingAnimation();
+
+    if (audioManager)
+        await audioManager.play('/sounds/greeting.mp3');
+
 }
 
 window.ask = () => speechManager.ask();

@@ -9,15 +9,21 @@ export class ModelLoader {
         this.bones = {};
         this.mixer = null;
         this.boneInitialRotations = {};
+        this.animation = {};
     }
 
     async loadGuideCharacter(scene) {
         const gltfLoader = new GLTFLoader();
         
         return new Promise((resolve, reject) => {
-            gltfLoader.load('/models/model.glb', (gltf) => {
+            gltfLoader.load('/models/m_mubsi_reworked.glb', (gltf) => {
 
                 this.guideCharModel = gltf.scene;
+
+                if (gltf.animations && gltf.animations.length > 0) {
+                    this.animation.greeting = gltf.animations[0];
+                    console.log('Greeting animation loaded');
+                }
 
                 this.guideCharModel.traverse((obj) => {
                     
@@ -43,7 +49,7 @@ export class ModelLoader {
 
                     if (obj.isBone && obj.name === "bone_45009") {
                         this.bones.jaw = obj;
-                        this.boneInitialRotations.jaw = obj.rotation.z;
+                        this.boneInitialRotations.jaw = obj.rotation.x;
                         console.log(`Jaw bone found: ${obj.name}`);
                     }
 

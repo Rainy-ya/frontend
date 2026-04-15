@@ -41,7 +41,11 @@ export class AudioManager {
         }
     }
 
-    play() {
+    async play(url = null) {
+        if (url) {
+            await this.loadAudioFromURL(url);
+        }
+
         if (!this.audioBuffer) {
             console.error('No audio buffer loaded');
             return;
@@ -61,11 +65,18 @@ export class AudioManager {
 
         this.audioSource.onended = () => {
             this.isSpeaking = false;
-            console.log('Audio playback ended');
         };
 
         this.audioSource.start(0);
-        console.log('Audio playback started');
+    }
+
+    stop() {
+        if (this.audioSource) {
+            this.audioSource.stop();
+            this.audioSource = null;
+        }
+
+        this.isSpeaking = false;
     }
 
     getVolume() {
