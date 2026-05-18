@@ -9,7 +9,7 @@ export function onSelect(indicator, model) {
 
         model.position.setFromMatrixPosition(indicator.matrix);
         model.quaternion.setFromRotationMatrix(indicator.matrix);
-        model.scale.set(0.2, 0.2, 0.2); 
+        model.scale.set(0.05, 0.05, 0.05); 
         model.visible = true;
         fadeInModel(model, 2000);
 

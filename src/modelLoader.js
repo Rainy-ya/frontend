@@ -16,7 +16,7 @@ export class ModelLoader {
         const gltfLoader = new GLTFLoader();
         
         return new Promise((resolve, reject) => {
-            gltfLoader.load('/models/m_mubsi_reworked.glb', (gltf) => {
+            gltfLoader.load('/models/mubsi.glb', (gltf) => {
 
                 this.guideCharModel = gltf.scene;
 
@@ -39,27 +39,32 @@ export class ModelLoader {
                         obj.visible = false;
                         console.log(`Shil object found and hidden: ${obj.name}`);
                     }
+
+                    if (obj.isObject3D && obj.name === "Plane") {
+                        obj.visible = false;
+                        console.log(`Plane object found and hidden: ${obj.name}`);
+                    }
                     
-                    //bone_44 - upper, bone_45 - lower heads
-                    if (obj.isBone && obj.name === "bone_44") {
+                    //Bone - lower, Bone.002 - upper heads
+                    if (obj.isBone && obj.name === "Bone") {
                         this.bones.head = obj;
                         this.boneInitialRotations.head = obj.rotation.clone();
                         console.log(`Head bone found: ${obj.name}`);
                     }
-
-                    if (obj.isBone && obj.name === "bone_45009") {
+                    //Bone.001 - upper, Bone.004 - lower jaw
+                    if (obj.isBone && obj.name === "Bone.001") {
                         this.bones.jaw = obj;
                         this.boneInitialRotations.jaw = obj.rotation.x;
                         console.log(`Jaw bone found: ${obj.name}`);
                     }
 
-                    if (obj.isBone && obj.name === "bone_45025") {
+                    if (obj.isBone && obj.name === "Bone.022") {
                         this.bones.eyeballLeft = obj;
                         this.boneInitialRotations.eyeballLeft = obj.rotation.clone();
                         console.log(`Left eyeball bone found: ${obj.name}`);
                     }
 
-                    if (obj.isBone && obj.name === "bone_45026") {
+                    if (obj.isBone && obj.name === "Bone.021") {
                         this.bones.eyeballRight = obj;
                         this.boneInitialRotations.eyeballRight = obj.rotation.clone();
                         console.log(`Right eyeball bone found: ${obj.name}`);
@@ -94,13 +99,6 @@ export class ModelLoader {
                             this.bones.rightThigh = obj;
                         }
                     }*/
-
-                    //bone_44 - upper, bone_45 - lower heads
-                    if (obj.isBone && obj.name === "bone_45") {
-                        this.bones.head = obj;
-                        this.boneInitialRotations.head = obj.rotation.clone();
-                        console.log(`Head bone found: ${obj.name}`);
-                    }
                 });
 
                 this.guideCharModel.traverse((obj) => {
